@@ -1,10 +1,11 @@
-package fr.paris.lutece.plugins.identitystore.v3.web.rs.service;
+package fr.paris.lutece.plugins.identitystore.v3.web.rs.service.transportrest;
 
 import fr.paris.lutece.plugins.identitystore.v3.web.rs.dto.account.openam.FederationLinkDto;
+import fr.paris.lutece.plugins.identitystore.v3.web.rs.dto.account.openam.SearchListFederationLinkResponse;
 import fr.paris.lutece.plugins.identitystore.v3.web.rs.dto.common.RequestAuthor;
-import fr.paris.lutece.plugins.identitystore.v3.web.rs.dto.common.ResponseDto;
+import fr.paris.lutece.plugins.identitystore.v3.web.rs.service.HttpAccessTransport;
 import fr.paris.lutece.plugins.identitystore.v3.web.rs.util.Constants;
-import fr.paris.lutece.plugins.identitystore.v3.web.service.IFederationLinkManagementTransportProvider;
+import fr.paris.lutece.plugins.identitystore.v3.web.service.transportprovider.IFederationLinkManagementTransportProvider;
 import fr.paris.lutece.plugins.identitystore.v3.web.service.IHttpTransportProvider;
 import fr.paris.lutece.plugins.identitystore.web.exception.IdentityStoreException;
 import fr.paris.lutece.plugins.identitystore.web.exception.OpenamIdentityException;
@@ -16,6 +17,7 @@ public class FederationLinkManagementTransportRest extends AbstractTransportRest
 {
 
     private String _strFederationLinkManagementEndPoint;
+    private String _strOpenAmApi;
 
     /**
      * Simple Constructor
@@ -25,15 +27,16 @@ public class FederationLinkManagementTransportRest extends AbstractTransportRest
         super(new HttpAccessTransport());
     }
 
-    public FederationLinkManagementTransportRest(final IHttpTransportProvider httpTransport)
+    public FederationLinkManagementTransportRest(final IHttpTransportProvider httpTransport, String api)
     {
         super(httpTransport);
 
         _strFederationLinkManagementEndPoint = httpTransport.getApiEndPointUrl();
+        _strOpenAmApi= api;
     }
 
     @Override
-    public ResponseDto getFederationLinkList(String guid, RequestAuthor author, String clientCode) throws OpenamIdentityException, IdentityStoreException
+    public SearchListFederationLinkResponse getFederationLinkList(String guid, RequestAuthor author, String clientCode) throws OpenamIdentityException, IdentityStoreException
     {
         this.checkCommonHeaders(clientCode, author);
 
@@ -44,13 +47,12 @@ public class FederationLinkManagementTransportRest extends AbstractTransportRest
 
         final Map<String, String> mapParams = new HashMap<>();
 
-        //TODO ajouter les constantes de l'API OpenAM FederationLink
-        final String url = _strFederationLinkManagementEndPoint + "" + guid;
-        return _httpTransport.doGet(url, mapParams, mapHeadersRequest, ResponseDto.class, _mapper);
+        final String url = _strFederationLinkManagementEndPoint + _strOpenAmApi  + Constants.FEDERATION_LINK_PATH + "/" + guid;
+        return _httpTransport.doGet(url, mapParams, mapHeadersRequest, SearchListFederationLinkResponse.class, _mapper);
     }
 
     @Override
-    public ResponseDto createFederationLink(FederationLinkDto federationLink, RequestAuthor author, String clientCode) throws OpenamIdentityException, IdentityStoreException
+    public void createFederationLink(FederationLinkDto federationLink, RequestAuthor author, String clientCode) throws OpenamIdentityException, IdentityStoreException
     {
         this.checkCommonHeaders(clientCode, author);
 
@@ -64,13 +66,12 @@ public class FederationLinkManagementTransportRest extends AbstractTransportRest
         mapParams.put(Constants.PARAMETER_IDENTITY_NAME, federationLink.getIdentityName());
         mapParams.put(Constants.PARAMETER_IDENTITY_PROVIDER, federationLink.getIdentityProvider());
 
-        //TODO ajouter les constantes de l'API OpenAM FederationLink
-        final String url = _strFederationLinkManagementEndPoint + "" + federationLink.getGuid();
-        return _httpTransport.doPostJSON(url, mapParams, mapHeadersRequest, null, ResponseDto.class, _mapper);
+        final String url = _strFederationLinkManagementEndPoint + _strOpenAmApi  + Constants.FEDERATION_LINK_PATH + "/" + federationLink.getGuid();
+        _httpTransport.doPostJSON(url, mapParams, mapHeadersRequest, null, null, _mapper);
     }
 
     @Override
-    public ResponseDto deleteFederationLink(String guid, String identityProvider, RequestAuthor author, String clientCode)
+    public void deleteFederationLink(String guid, String identityProvider, RequestAuthor author, String clientCode)
             throws OpenamIdentityException, IdentityStoreException
     {
         this.checkCommonHeaders(clientCode, author);
@@ -82,8 +83,7 @@ public class FederationLinkManagementTransportRest extends AbstractTransportRest
 
         final Map<String, String> mapParams = new HashMap<>();
 
-        //TODO ajouter les constantes de l'API OpenAM FederationLink
-        final String url = _strFederationLinkManagementEndPoint + "" + guid + "/" + identityProvider;
-        return _httpTransport.doDeleteJSON(url, mapParams, mapHeadersRequest, null, ResponseDto.class, _mapper);
+        final String url = _strFederationLinkManagementEndPoint + _strOpenAmApi  + Constants.FEDERATION_LINK_PATH + "/" + guid + "/" + identityProvider;
+        _httpTransport.doDeleteJSON(url, mapParams, mapHeadersRequest, null, null, _mapper);
     }
 }

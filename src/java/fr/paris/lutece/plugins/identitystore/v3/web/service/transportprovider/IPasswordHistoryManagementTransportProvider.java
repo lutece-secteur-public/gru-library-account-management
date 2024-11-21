@@ -1,8 +1,8 @@
-package fr.paris.lutece.plugins.identitystore.v3.web.service;
+package fr.paris.lutece.plugins.identitystore.v3.web.service.transportprovider;
 
 import fr.paris.lutece.plugins.identitystore.v3.web.rs.IdentityRequestValidator;
+import fr.paris.lutece.plugins.identitystore.v3.web.rs.dto.account.openam.SearchListPasswordHistortyResult;
 import fr.paris.lutece.plugins.identitystore.v3.web.rs.dto.common.RequestAuthor;
-import fr.paris.lutece.plugins.identitystore.v3.web.rs.dto.common.ResponseDto;
 import fr.paris.lutece.plugins.identitystore.web.exception.IdentityStoreException;
 import fr.paris.lutece.plugins.identitystore.web.exception.OpenamIdentityException;
 
@@ -15,6 +15,6 @@ public interface IPasswordHistoryManagementTransportProvider
         IdentityRequestValidator.instance( ).checkClientCode( clientCode );
     }
 
-    ResponseDto getListPasswordHistory(String guid, RequestAuthor author, String clientCode) throws OpenamIdentityException, IdentityStoreException;
+    SearchListPasswordHistortyResult getListPasswordHistory(String guid, RequestAuthor author, String clientCode) throws OpenamIdentityException, IdentityStoreException;
 
 }

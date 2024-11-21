@@ -2,8 +2,11 @@ package fr.paris.lutece.plugins.identitystore.v3.web.service;
 
 import fr.paris.lutece.plugins.identitystore.v3.web.rs.dto.account.openam.AccountOpenAMDto;
 import fr.paris.lutece.plugins.identitystore.v3.web.rs.dto.account.openam.CreateAccountResponse;
+import fr.paris.lutece.plugins.identitystore.v3.web.rs.dto.account.openam.SearchListAccountResult;
+import fr.paris.lutece.plugins.identitystore.v3.web.rs.dto.account.openam.json.JsonSearchListAccountResult;
 import fr.paris.lutece.plugins.identitystore.v3.web.rs.dto.common.RequestAuthor;
 import fr.paris.lutece.plugins.identitystore.v3.web.rs.dto.common.ResponseDto;
+import fr.paris.lutece.plugins.identitystore.v3.web.service.transportprovider.IAccountManagementTransportProvider;
 import fr.paris.lutece.plugins.identitystore.web.exception.IdentityStoreException;
 import fr.paris.lutece.plugins.identitystore.web.exception.OpenamIdentityException;
 
@@ -29,8 +32,8 @@ public class AccountManagementService
         this._transportProvider = _transportProvider;
     }
 
-    public ResponseDto getAccountList(String strSearchMail, String strSearchStatus, String strDesc, String strSort, String strRange,
-                                      RequestAuthor author, String clientCode) throws OpenamIdentityException, IdentityStoreException
+    public SearchListAccountResult getAccountList(String strSearchMail, String strSearchStatus, String strDesc, String strSort, String strRange,
+                                                  RequestAuthor author, String clientCode) throws OpenamIdentityException, IdentityStoreException
     {
         return this._transportProvider.getAccountList(strSearchMail, strSearchStatus, strDesc, strSort, strRange, author, clientCode);
     }
@@ -41,36 +44,36 @@ public class AccountManagementService
         return this._transportProvider.createAccount( strMail, strUserPassword, author, clientCode );
     }
     
-    public ResponseDto modifyAccount(AccountOpenAMDto account, RequestAuthor author,
+    public void modifyAccount(AccountOpenAMDto account, RequestAuthor author,
                                      String clientCode) throws OpenamIdentityException, IdentityStoreException
     {
-        return this._transportProvider.modifyAccount(account, author, clientCode);
+        this._transportProvider.modifyAccount(account, author, clientCode);
     }
 
-    public ResponseDto modifyPassword(String strGuid, String strCurrentUserPassword, String strUserPassword, RequestAuthor author,
+    public void modifyPassword(String strGuid, String strCurrentUserPassword, String strUserPassword, RequestAuthor author,
                                  String clientCode) throws OpenamIdentityException, IdentityStoreException
     {
-        return this._transportProvider.modifyPassword(strGuid, strCurrentUserPassword, strUserPassword, author, clientCode);
+        this._transportProvider.modifyPassword(strGuid, strCurrentUserPassword, strUserPassword, author, clientCode);
     }
     
-    public ResponseDto deleteAccount(String strGuid, RequestAuthor author, String clientCode) throws OpenamIdentityException, IdentityStoreException
+    public void deleteAccount(String strGuid, RequestAuthor author, String clientCode) throws OpenamIdentityException, IdentityStoreException
     {
-        return this._transportProvider.deleteAccount(strGuid, author, clientCode);
+        this._transportProvider.deleteAccount(strGuid, author, clientCode);
     }
     
-    public ResponseDto getAccount(String strGuid, RequestAuthor author, String clientCode) throws OpenamIdentityException, IdentityStoreException
+    public AccountOpenAMDto getAccount(String strGuid, RequestAuthor author, String clientCode) throws OpenamIdentityException, IdentityStoreException
     {
         return this._transportProvider.getAccount( strGuid, author, clientCode );
     }
     
-    public ResponseDto getKeyclockAccount(String strGuid, RequestAuthor author, String clientCode) throws OpenamIdentityException, IdentityStoreException
+    public AccountOpenAMDto getKeyclockAccount(String strGuid, RequestAuthor author, String clientCode) throws OpenamIdentityException, IdentityStoreException
     {
         return this._transportProvider.getKeyclockAccount( strGuid, author, clientCode );
     }
 
-    public ResponseDto getAccountListByTechnicalInformations(String strLastAuthDate, boolean bBeforeLastAuthDate, String strModifDate,
-                                                             boolean bBeforeModifDate, boolean bValidatedAccount, String strTechnicalOperation,
-                                                             boolean bNotOperator, RequestAuthor author, String clientCode)
+    public JsonSearchListAccountResult getAccountListByTechnicalInformations(String strLastAuthDate, boolean bBeforeLastAuthDate, String strModifDate,
+                                                                             boolean bBeforeModifDate, boolean bValidatedAccount, String strTechnicalOperation,
+                                                                             boolean bNotOperator, RequestAuthor author, String clientCode)
             throws OpenamIdentityException, IdentityStoreException
     {
         return this._transportProvider.getAccountListByTechnicalInformations(strLastAuthDate, bValidatedAccount,
@@ -78,13 +81,13 @@ public class AccountManagementService
                 author, clientCode);
     }
 
-    public ResponseDto updateTechnicalOperation(List<String> listGuid, String strTechnicalOperationValue, RequestAuthor author,
+    public void updateTechnicalOperation(List<String> listGuid, String strTechnicalOperationValue, RequestAuthor author,
                                                 String clientCode) throws OpenamIdentityException, IdentityStoreException
     {
-        return this._transportProvider.updateTechnicalOperation(listGuid, strTechnicalOperationValue, author, clientCode);
+        this._transportProvider.updateTechnicalOperation(listGuid, strTechnicalOperationValue, author, clientCode);
     }
 
-    public ResponseDto getAccountListByGuid(List<String> listGuid, RequestAuthor author, String clientCode) throws OpenamIdentityException, IdentityStoreException
+    public SearchListAccountResult getAccountListByGuid(List<String> listGuid, RequestAuthor author, String clientCode) throws OpenamIdentityException, IdentityStoreException
     {
         return this._transportProvider.getAccountListByGuid(listGuid, author, clientCode);
     }
