@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2024, City of Paris
+ * Copyright (c) 2002-2025, City of Paris
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,58 +31,30 @@
  *
  * License 1.0
  */
-package fr.paris.lutece.plugins.identitystore.v3.web.rs.service.transportrest;
+package fr.paris.lutece.plugins.accountmanagement.web.service;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import fr.paris.lutece.plugins.identitystore.v3.web.service.IHttpTransportProvider;
+import fr.paris.lutece.util.httpaccess.ResponseStatusValidator;
 
-/**
- *
- */
-public abstract class AbstractTransportRest
+public class CustomResponseStatusValidator implements ResponseStatusValidator
 {
+    private static CustomResponseStatusValidator instance;
 
-    /** HTTP transport provider */
-    protected IHttpTransportProvider _httpTransport;
-
-    /** mapper */
-    protected static ObjectMapper _mapper;
-    static
+    public static CustomResponseStatusValidator getInstance( )
     {
-        _mapper = new ObjectMapper( );
-        // _mapper.enable( DeserializationFeature.UNWRAP_ROOT_VALUE );
-        _mapper.disable( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES );
-        // _mapper.enable( SerializationFeature.WRAP_ROOT_VALUE );
+        if ( instance == null )
+        {
+            instance = new CustomResponseStatusValidator( );
+        }
+        return instance;
     }
 
-    /**
-     * Constructor
-     * 
-     * @param transportProvider
-     */
-    protected AbstractTransportRest( final IHttpTransportProvider transportProvider )
+    private CustomResponseStatusValidator( )
     {
-        super( );
-        this._httpTransport = transportProvider;
     }
 
-    /**
-     * setter of httpTransport
-     *
-     * @param httpTransport
-     *            IHttpTransportProvider to use
-     */
-    public void setHttpTransport( final IHttpTransportProvider httpTransport )
+    @Override
+    public boolean validate( int i )
     {
-        this._httpTransport = httpTransport;
-    }
-
-    /**
-     * @return the httpTransport
-     */
-    protected IHttpTransportProvider getHttpTransport( )
-    {
-        return _httpTransport;
+        return i < 500;
     }
 }

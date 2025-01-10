@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2024, City of Paris
+ * Copyright (c) 2002-2025, City of Paris
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,30 +31,19 @@
  *
  * License 1.0
  */
-package fr.paris.lutece.plugins.identitystore.v3.web.service;
+package fr.paris.lutece.plugins.accountmanagement.web.service.transportprovider;
 
-import fr.paris.lutece.util.httpaccess.ResponseStatusValidator;
+import fr.paris.lutece.plugins.identitystore.v3.web.rs.dto.account.ChangeFederationLinkResponse;
+import fr.paris.lutece.plugins.identitystore.v3.web.rs.dto.account.FederationLinkDto;
+import fr.paris.lutece.plugins.identitystore.v3.web.rs.dto.account.RequestClient;
+import fr.paris.lutece.plugins.identitystore.v3.web.rs.dto.account.SearchListFederationLinkResponse;
+import fr.paris.lutece.plugins.identitystore.web.exception.IdentityAccountException;
 
-public class CustomResponseStatusValidator implements ResponseStatusValidator
+public interface IFederationLinkManagementTransportProvider
 {
-    private static CustomResponseStatusValidator instance;
+    SearchListFederationLinkResponse getFederationLinkList( String guid, RequestClient client ) throws IdentityAccountException;
 
-    public static CustomResponseStatusValidator getInstance( )
-    {
-        if ( instance == null )
-        {
-            instance = new CustomResponseStatusValidator( );
-        }
-        return instance;
-    }
+    ChangeFederationLinkResponse createFederationLink( FederationLinkDto federationLink, RequestClient client ) throws IdentityAccountException;
 
-    private CustomResponseStatusValidator( )
-    {
-    }
-
-    @Override
-    public boolean validate( int i )
-    {
-        return i < 500;
-    }
+    ChangeFederationLinkResponse deleteFederationLink( String guid, String IdentityProvider, RequestClient client ) throws IdentityAccountException;
 }

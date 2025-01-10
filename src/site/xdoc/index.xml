@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <document>
     <properties>
-        <title>Library Identitystore</title>
+        <title>Library Account management</title>
     </properties>
     <body>
-        <section name="Library Identitystore">
+        <section name="Library Account management">
             <subsection name="Introduction">
                 <p>
                     This library provides services to communicate with Identity Store REST API.
@@ -21,14 +21,14 @@
                     These methods are implemented in the rest transport <code>fr.paris.lutece.plugins.identitystore.v3.web.rs.service.IdentityTransportRest</code>.
                 </p>
                 <p>
-                    It requires an implementation of <code>fr.paris.lutece.plugins.identitystore.v3.web.service.IHttpTransportProvider</code> to define the HTTP transport.
+                    It requires an implementation of <code>fr.paris.lutece.plugins.accountmanagement.web.service.IHttpTransportProvider</code> to define the HTTP transport.
                     Two implementations of this interface are provided in the library :
                     <ul>
                         <li>
-                            <code>fr.paris.lutece.plugins.identitystore.v3.web.rs.service.HttpAccessTransport</code>, which uses simple requests
+                            <code>fr.paris.lutece.plugins.accountmanagement.web.rs.service.HttpAccessTransport</code>, which uses simple requests
                         </li>
                         <li>
-                            <code>fr.paris.lutece.plugins.identitystore.v3.web.rs.service.HttpApiManagerAccessTransport</code>, which calls endpoints through an ApiManager in order to secure requests to the API (by using tokens)
+                            <code>fr.paris.lutece.plugins.accountmanagement.web.rs.service.HttpApiManagerAccessTransport</code>, which calls endpoints through an ApiManager in order to secure requests to the API (by using tokens)
                         </li>
                     </ul>
                 </p>

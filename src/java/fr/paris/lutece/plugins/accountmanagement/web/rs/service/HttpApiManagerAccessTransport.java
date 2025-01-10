@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2024, City of Paris
+ * Copyright (c) 2002-2025, City of Paris
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,12 +31,12 @@
  *
  * License 1.0
  */
-package fr.paris.lutece.plugins.identitystore.v3.web.rs.service;
+package fr.paris.lutece.plugins.accountmanagement.web.rs.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import fr.paris.lutece.plugins.identitystore.web.exception.IdentityStoreException;
+import fr.paris.lutece.plugins.identitystore.web.exception.IdentityAccountException;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.ws.rs.core.HttpHeaders;
@@ -92,14 +92,14 @@ public final class HttpApiManagerAccessTransport extends HttpAccessTransport
      * Gets the security token from API Manager
      * 
      * @return the token
-     * @throws IdentityStoreException
+     * @throws IdentityAccountException
      */
-    private String getToken( ) throws IdentityStoreException
+    private String getToken( ) throws IdentityAccountException
     {
         String strToken = StringUtils.EMPTY;
 
-        Map<String, String> mapHeadersRequest = new HashMap<String, String>( );
-        Map<String, String> mapParams = new HashMap<String, String>( );
+        final Map<String, String> mapHeadersRequest = new HashMap<String, String>( );
+        final Map<String, String> mapParams = new HashMap<String, String>( );
 
         mapParams.put( PARAMS_GRANT_TYPE, PARAMS_GRANT_TYPE_VALUE );
 
@@ -114,9 +114,9 @@ public final class HttpApiManagerAccessTransport extends HttpAccessTransport
         {
             strOutput = this._httpClient.doPost( _strAccessManagerEndPointUrl, mapParams, null, null, mapHeadersRequest, mapHeadersResponse );
         }
-        catch( Exception e )
+        catch( final Exception e )
         {
-            handleException( e );
+            this.handleException( e );
         }
 
         JsonNode strResponseApiManagerJsonObject = null;
@@ -130,9 +130,9 @@ public final class HttpApiManagerAccessTransport extends HttpAccessTransport
                 strToken = strResponseApiManagerJsonObject.get( PARAMS_ACCES_TOKEN ).asText( );
             }
         }
-        catch( JsonProcessingException e )
+        catch( final JsonProcessingException e )
         {
-            handleException( e );
+            this.handleException( e );
         }
 
         return strToken;
@@ -141,15 +141,19 @@ public final class HttpApiManagerAccessTransport extends HttpAccessTransport
     /**
      * {@inheritDoc}
      * 
-     * @throws IdentityStoreException
+     * @throws IdentityAccountException
      */
     @Override
-    protected void addAuthentication( Map<String, String> mapHeadersRequest ) throws IdentityStoreException
+    protected void addAuthentication( Map<String, String> mapHeadersRequest ) throws IdentityAccountException
     {
-        String strToken = getToken( );
+        final String strToken = this.getToken( );
 
         if ( StringUtils.isNotBlank( strToken ) )
         {
+            if ( mapHeadersRequest == null )
+            {
+                mapHeadersRequest = new HashMap<>( );
+            }
             mapHeadersRequest.put( HttpHeaders.AUTHORIZATION, TYPE_AUTHENTIFICATION_BEARER + " " + strToken );
         }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2024, City of Paris
+ * Copyright (c) 2002-2025, City of Paris
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,20 +31,20 @@
  *
  * License 1.0
  */
-package fr.paris.lutece.plugins.identitystore.v3.web.rs.service;
+package fr.paris.lutece.plugins.accountmanagement.web.rs.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import fr.paris.lutece.plugins.identitystore.v3.web.rs.dto.common.ResponseDto;
+import fr.paris.lutece.plugins.accountmanagement.web.service.CustomResponseStatusValidator;
+import fr.paris.lutece.plugins.accountmanagement.web.service.IHttpTransportProvider;
+import fr.paris.lutece.plugins.identitystore.v3.web.rs.dto.account.AccountErrorResponseDto;
+import fr.paris.lutece.plugins.identitystore.v3.web.rs.dto.account.AccountResponseDto;
 import fr.paris.lutece.plugins.identitystore.v3.web.rs.dto.error.ErrorResponse;
 import fr.paris.lutece.plugins.identitystore.v3.web.rs.util.Constants;
-import fr.paris.lutece.plugins.identitystore.v3.web.service.CustomResponseStatusValidator;
-import fr.paris.lutece.plugins.identitystore.v3.web.service.IHttpTransportProvider;
-import fr.paris.lutece.plugins.identitystore.web.exception.IdentityStoreException;
+import fr.paris.lutece.plugins.identitystore.web.exception.IdentityAccountException;
 import fr.paris.lutece.portal.service.util.AppLogService;
 import fr.paris.lutece.util.httpaccess.HttpAccess;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.hc.core5.net.URIBuilder;
 
 import javax.ws.rs.core.HttpHeaders;
@@ -67,42 +67,48 @@ public class HttpAccessTransport implements IHttpTransportProvider
         this._httpClient = new HttpAccess( CustomResponseStatusValidator.getInstance( ) );
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @throws IdentityStoreException
-     */
     @Override
-    public String doPost( String strUrl, Map<String, String> mapParams, Map<String, String> mapHeadersRequest ) throws IdentityStoreException
+    public <T extends AccountResponseDto> T doPost( String strUrl, Map<String, String> mapParams, Map<String, String> mapHeadersRequest,
+            Class<T> responseJsonClass, ObjectMapper mapper ) throws IdentityAccountException
     {
         final Map<String, String> mapHeadersResponse = new HashMap<>( );
+        if ( mapHeadersRequest == null )
+        {
+            mapHeadersRequest = new HashMap<>( );
+        }
+        mapHeadersRequest.put( HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED );
 
-        String strOutput = StringUtils.EMPTY;
+        T oResponse = null;
 
         try
         {
-            addAuthentication( mapHeadersRequest );
-
-            strOutput = this._httpClient.doPost( strUrl, mapParams, null, null, mapHeadersRequest, mapHeadersResponse );
+            this.addAuthentication( mapHeadersRequest );
+            final String strOutput = this._httpClient.doPost( strUrl, mapParams, null, null, mapHeadersRequest, mapHeadersResponse );
+            oResponse = this.mapJson( mapper, strOutput, responseJsonClass );
         }
         catch( Exception e )
         {
-            handleException( e );
+            this.handleException( e );
         }
 
-        return strOutput;
+        return oResponse;
     }
 
     /**
      * {@inheritDoc}
      * 
-     * @throws IdentityStoreException
+     * @throws IdentityAccountException
      */
     @Override
-    public <T extends ResponseDto> T doPostJSON( String strUrl, Map<String, String> mapParams, Map<String, String> mapHeadersRequest, Object json,
-            Class<T> responseJsonClass, ObjectMapper mapper ) throws IdentityStoreException
+    public <T extends AccountResponseDto> T doPostJSON( String strUrl, Map<String, String> mapParams, Map<String, String> mapHeadersRequest, Object json,
+            Class<T> responseJsonClass, ObjectMapper mapper ) throws IdentityAccountException
     {
         final Map<String, String> mapHeadersResponse = new HashMap<>( );
+
+        if ( mapHeadersRequest == null )
+        {
+            mapHeadersRequest = new HashMap<>( );
+        }
         mapHeadersRequest.put( HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON );
         mapHeadersRequest.put( HttpHeaders.CONTENT_TYPE, Constants.CONTENT_FORMAT_CHARSET );
 
@@ -110,15 +116,41 @@ public class HttpAccessTransport implements IHttpTransportProvider
 
         try
         {
-            addAuthentication( mapHeadersRequest );
+            this.addAuthentication( mapHeadersRequest );
+            final String strJSON = mapper.writeValueAsString( json );
+            final String strResponseJSON = this._httpClient.doPostJSON( strUrl, strJSON, mapHeadersRequest, mapHeadersResponse );
+            oResponse = this.mapJson( mapper, strResponseJSON, responseJsonClass );
+        }
+        catch( final Exception e )
+        {
+            this.handleException( e );
+        }
 
-            String strJSON = mapper.writeValueAsString( json );
-            String strResponseJSON = this._httpClient.doPostJSON( strUrl, strJSON, mapHeadersRequest, mapHeadersResponse );
-            oResponse = mapJson( mapper, strResponseJSON, responseJsonClass );
+        return oResponse;
+    }
+
+    @Override
+    public <T extends AccountResponseDto> T doPut( String strUrl, Map<String, String> mapParams, Map<String, String> mapHeadersRequest,
+            Class<T> responseJsonClass, ObjectMapper mapper ) throws IdentityAccountException
+    {
+        final Map<String, String> mapHeadersResponse = new HashMap<>( );
+        if ( mapHeadersRequest == null )
+        {
+            mapHeadersRequest = new HashMap<>( );
+        }
+        mapHeadersRequest.put( HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED );
+
+        T oResponse = null;
+
+        try
+        {
+            this.addAuthentication( mapHeadersRequest );
+            final String strOutput = this._httpClient.doPut( strUrl, null, null, mapParams, mapHeadersRequest, mapHeadersResponse );
+            oResponse = this.mapJson( mapper, strOutput, responseJsonClass );
         }
         catch( Exception e )
         {
-            handleException( e );
+            this.handleException( e );
         }
 
         return oResponse;
@@ -127,13 +159,18 @@ public class HttpAccessTransport implements IHttpTransportProvider
     /**
      * {@inheritDoc}
      *
-     * @throws IdentityStoreException
+     * @throws IdentityAccountException
      */
     @Override
-    public <T extends ResponseDto> T doPutJSON( String strUrl, Map<String, String> mapParams, Map<String, String> mapHeadersRequest, Object json,
-            Class<T> responseJsonClass, ObjectMapper mapper ) throws IdentityStoreException
+    public <T extends AccountResponseDto> T doPutJSON( String strUrl, Map<String, String> mapParams, Map<String, String> mapHeadersRequest, Object json,
+            Class<T> responseJsonClass, ObjectMapper mapper ) throws IdentityAccountException
     {
         final Map<String, String> mapHeadersResponse = new HashMap<>( );
+
+        if ( mapHeadersRequest == null )
+        {
+            mapHeadersRequest = new HashMap<>( );
+        }
         mapHeadersRequest.put( HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON );
         mapHeadersRequest.put( HttpHeaders.CONTENT_TYPE, Constants.CONTENT_FORMAT_CHARSET );
 
@@ -141,15 +178,15 @@ public class HttpAccessTransport implements IHttpTransportProvider
 
         try
         {
-            addAuthentication( mapHeadersRequest );
+            this.addAuthentication( mapHeadersRequest );
 
-            String strJSON = mapper.writeValueAsString( json );
-            String strResponseJSON = this._httpClient.doPutJSON( strUrl, strJSON, mapHeadersRequest, mapHeadersResponse );
-            oResponse = mapJson( mapper, strResponseJSON, responseJsonClass );
+            final String strJSON = mapper.writeValueAsString( json );
+            final String strResponseJSON = this._httpClient.doPutJSON( strUrl, strJSON, mapHeadersRequest, mapHeadersResponse );
+            oResponse = this.mapJson( mapper, strResponseJSON, responseJsonClass );
         }
-        catch( Exception e )
+        catch( final Exception e )
         {
-            handleException( e );
+            this.handleException( e );
         }
 
         return oResponse;
@@ -158,13 +195,18 @@ public class HttpAccessTransport implements IHttpTransportProvider
     /**
      * {@inheritDoc}
      * 
-     * @throws IdentityStoreException
+     * @throws IdentityAccountException
      */
     @Override
-    public <T extends ResponseDto> List<T> doPostJSONforList( String strUrl, Map<String, String> mapParams, Map<String, String> mapHeadersRequest, Object json,
-            Class<T> responseJsonClass, ObjectMapper mapper ) throws IdentityStoreException
+    public <T extends AccountResponseDto> List<T> doPostJSONforList( String strUrl, Map<String, String> mapParams, Map<String, String> mapHeadersRequest,
+            Object json, Class<T> responseJsonClass, ObjectMapper mapper ) throws IdentityAccountException
     {
         final Map<String, String> mapHeadersResponse = new HashMap<>( );
+
+        if ( mapHeadersRequest == null )
+        {
+            mapHeadersRequest = new HashMap<>( );
+        }
         mapHeadersRequest.put( HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON );
         mapHeadersRequest.put( HttpHeaders.CONTENT_TYPE, Constants.CONTENT_FORMAT_CHARSET );
 
@@ -172,85 +214,88 @@ public class HttpAccessTransport implements IHttpTransportProvider
 
         try
         {
-            addAuthentication( mapHeadersRequest );
+            this.addAuthentication( mapHeadersRequest );
 
-            String strJSON = mapper.writeValueAsString( json );
-            String strResponseJSON = this._httpClient.doPostJSON( strUrl, strJSON, mapHeadersRequest, mapHeadersResponse );
-            oResponse = mapJsonList( mapper, strResponseJSON, responseJsonClass );
+            final String strJSON = mapper.writeValueAsString( json );
+            final String strResponseJSON = this._httpClient.doPostJSON( strUrl, strJSON, mapHeadersRequest, mapHeadersResponse );
+            oResponse = this.mapJsonList( mapper, strResponseJSON, responseJsonClass );
         }
-        catch( Exception e )
+        catch( final Exception e )
         {
-            handleException( e );
+            this.handleException( e );
         }
 
         return oResponse;
     }
 
     @Override
-    public <T extends ResponseDto> T doGet( String strEndPointUrl, Map<String, String> mapParams, Map<String, String> mapHeadersRequest,
-            Class<T> responseJsonClass, ObjectMapper mapper ) throws IdentityStoreException
+    public <T extends AccountResponseDto> T doGet( String strEndPointUrl, Map<String, String> mapParams, Map<String, String> mapHeadersRequest,
+            Class<T> responseJsonClass, ObjectMapper mapper ) throws IdentityAccountException
     {
         T oResponse = null;
 
         try
         {
-            URIBuilder uriBuilder = new URIBuilder( strEndPointUrl );
+            final URIBuilder uriBuilder = new URIBuilder( strEndPointUrl );
 
             if ( ( mapParams != null ) && !mapParams.isEmpty( ) )
             {
-                for ( String strParamKey : mapParams.keySet( ) )
+                for ( final String strParamKey : mapParams.keySet( ) )
                 {
                     uriBuilder.addParameter( strParamKey, mapParams.get( strParamKey ) );
                 }
             }
 
-            addAuthentication( mapHeadersRequest );
-            String strResponseJSON = this._httpClient.doGet( uriBuilder.toString( ), null, null, mapHeadersRequest );
-            oResponse = mapJson( mapper, strResponseJSON, responseJsonClass );
+            this.addAuthentication( mapHeadersRequest );
+            final String strResponseJSON = this._httpClient.doGet( uriBuilder.toString( ), null, null, mapHeadersRequest );
+            oResponse = this.mapJson( mapper, strResponseJSON, responseJsonClass );
         }
-        catch( Exception e )
+        catch( final Exception e )
         {
-            handleException( e );
+            this.handleException( e );
         }
 
         return oResponse;
     }
 
     @Override
-    public <T extends ResponseDto> T doDelete( String strEndPointUrl, Map<String, String> mapParams, Map<String, String> mapHeadersRequest,
-            Class<T> responseJsonClass, ObjectMapper mapper ) throws IdentityStoreException
+    public <T extends AccountResponseDto> T doDelete( String strEndPointUrl, Map<String, String> mapParams, Map<String, String> mapHeadersRequest,
+            Class<T> responseJsonClass, ObjectMapper mapper ) throws IdentityAccountException
     {
         T oResponse = null;
 
         try
         {
-            URIBuilder uriBuilder = new URIBuilder( strEndPointUrl );
+            final URIBuilder uriBuilder = new URIBuilder( strEndPointUrl );
 
             if ( ( mapParams != null ) && !mapParams.isEmpty( ) )
             {
-                for ( String strParamKey : mapParams.keySet( ) )
+                for ( final String strParamKey : mapParams.keySet( ) )
                 {
                     uriBuilder.addParameter( strParamKey, mapParams.get( strParamKey ) );
                 }
             }
 
-            addAuthentication( mapHeadersRequest );
-            String strResponseJSON = this._httpClient.doDelete( uriBuilder.toString( ), null, null, mapHeadersRequest, null );
+            this.addAuthentication( mapHeadersRequest );
+            final String strResponseJSON = this._httpClient.doDelete( uriBuilder.toString( ), null, null, mapHeadersRequest, null );
             oResponse = mapJson( mapper, strResponseJSON, responseJsonClass );
         }
-        catch( Exception e )
+        catch( final Exception e )
         {
-            handleException( e );
+            this.handleException( e );
         }
 
         return oResponse;
     }
 
     @Override
-    public <T extends ResponseDto> T doDeleteJSON( String strEndPointUrl, Map<String, String> mapParams, Map<String, String> mapHeadersRequest, Object json,
-            Class<T> responseJsonClass, ObjectMapper mapper ) throws IdentityStoreException
+    public <T extends AccountResponseDto> T doDeleteJSON( String strEndPointUrl, Map<String, String> mapParams, Map<String, String> mapHeadersRequest,
+            Object json, Class<T> responseJsonClass, ObjectMapper mapper ) throws IdentityAccountException
     {
-        final Map<String, String> mapHeadersResponse = new HashMap<>( );
+        if ( mapHeadersRequest == null )
+        {
+            mapHeadersRequest = new HashMap<>( );
+        }
         mapHeadersRequest.put( HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON );
         mapHeadersRequest.put( HttpHeaders.CONTENT_TYPE, Constants.CONTENT_FORMAT_CHARSET );
 
@@ -258,24 +303,24 @@ public class HttpAccessTransport implements IHttpTransportProvider
 
         try
         {
-            URIBuilder uriBuilder = new URIBuilder( strEndPointUrl );
+            final URIBuilder uriBuilder = new URIBuilder( strEndPointUrl );
 
             if ( ( mapParams != null ) && !mapParams.isEmpty( ) )
             {
-                for ( String strParamKey : mapParams.keySet( ) )
+                for ( final String strParamKey : mapParams.keySet( ) )
                 {
                     uriBuilder.addParameter( strParamKey, mapParams.get( strParamKey ) );
                 }
             }
 
-            addAuthentication( mapHeadersRequest );
-            String strJSON = mapper.writeValueAsString( json );
-            String strResponseJSON = this._httpClient.doDeleteJSON( uriBuilder.toString( ), strJSON, null, null, mapHeadersRequest, null );
-            oResponse = mapJson( mapper, strResponseJSON, responseJsonClass );
+            this.addAuthentication( mapHeadersRequest );
+            final String strJSON = mapper.writeValueAsString( json );
+            final String strResponseJSON = this._httpClient.doDeleteJSON( uriBuilder.toString( ), strJSON, null, null, mapHeadersRequest, null );
+            oResponse = this.mapJson( mapper, strResponseJSON, responseJsonClass );
         }
-        catch( Exception e )
+        catch( final Exception e )
         {
-            handleException( e );
+            this.handleException( e );
         }
 
         return oResponse;
@@ -286,25 +331,29 @@ public class HttpAccessTransport implements IHttpTransportProvider
      * 
      * @param e
      *            root exception
-     * @throws IdentityStoreException
+     * @throws IdentityAccountException
      */
-    protected void handleException( Exception e ) throws IdentityStoreException
+    protected void handleException( Exception e ) throws IdentityAccountException
     {
-        String strError = "LibraryIdentityStore - Error HttpAccessTransport :";
+        final String strError = "LibraryAccountManagement - Error HttpAccessTransport :";
         AppLogService.error( strError + e.getMessage( ), e );
 
-        throw new IdentityStoreException( strError, e );
+        throw new IdentityAccountException( strError, e );
     }
 
     /**
      * add specific authentication to request
-     * 
+     *
      * @param mapHeadersRequest
      *            map of headers to add
-     * @throws IdentityStoreException
+     * @throws IdentityAccountException
      */
-    protected void addAuthentication( Map<String, String> mapHeadersRequest ) throws IdentityStoreException
+    protected void addAuthentication( Map<String, String> mapHeadersRequest ) throws IdentityAccountException
     {
+        if ( mapHeadersRequest == null )
+        {
+            mapHeadersRequest = new HashMap<>( );
+        }
         // default : no authentication
     }
 
@@ -331,17 +380,17 @@ public class HttpAccessTransport implements IHttpTransportProvider
     }
 
     /**
-     * Converts json String response to the desired {@link ResponseDto} subclass instance.
+     * Converts json String response to the desired {@link AccountResponseDto} subclass instance.
      *
      * @param mapper
      *            the mapper
      * @param jsonStr
      *            the json string value
      * @param responseClass
-     *            the desired {@link ResponseDto} subclass
-     * @return the desired {@link ResponseDto} subclass instance
+     *            the desired {@link AccountResponseDto} subclass
+     * @return the desired {@link AccountResponseDto} subclass instance
      */
-    private <T extends ResponseDto> T mapJson( final ObjectMapper mapper, final String jsonStr, final Class<T> responseClass )
+    private <T extends AccountResponseDto> T mapJson( final ObjectMapper mapper, final String jsonStr, final Class<T> responseClass )
             throws JsonProcessingException, InstantiationException, IllegalAccessException
     {
         T response = null;
@@ -352,29 +401,30 @@ public class HttpAccessTransport implements IHttpTransportProvider
         catch( final Exception e )
         {
             // If mapper didn't manage to map the json with the desired class, we try to map it as an error response
-            final ErrorResponse er = mapper.readValue( jsonStr, ErrorResponse.class );
+            final AccountErrorResponseDto er = mapper.readValue( jsonStr, AccountErrorResponseDto.class );
             if ( er != null )
             {
                 // If it is an error response, we need to convert it to the desired response class
                 response = responseClass.newInstance( );
                 response.setStatus( er.getStatus( ) );
+                response.setErrorCode( er.getErrorCode( ) );
             }
         }
         return response;
     }
 
     /**
-     * Converts json String response to a {@link List} of the desired {@link ResponseDto} subclass instances.
+     * Converts json String response to a {@link List} of the desired {@link AccountResponseDto} subclass instances.
      *
      * @param mapper
      *            the mapper
      * @param jsonStr
      *            the json string value
      * @param responseClass
-     *            the desired {@link ResponseDto} subclass
-     * @return a {@link List} of the desired {@link ResponseDto} subclass instances
+     *            the desired {@link AccountResponseDto} subclass
+     * @return a {@link List} of the desired {@link AccountResponseDto} subclass instances
      */
-    private <T extends ResponseDto> List<T> mapJsonList( final ObjectMapper mapper, final String jsonStr, final Class<T> responseClass )
+    private <T extends AccountResponseDto> List<T> mapJsonList( final ObjectMapper mapper, final String jsonStr, final Class<T> responseClass )
             throws JsonProcessingException, InstantiationException, IllegalAccessException
     {
         List<T> responseList = new ArrayList<>( );
@@ -396,7 +446,7 @@ public class HttpAccessTransport implements IHttpTransportProvider
                     for ( final ErrorResponse er : errorResponseList )
                     {
                         final T response = responseClass.newInstance( );
-                        response.setStatus( er.getStatus( ) );
+                        response.setStatus( er.getStatus( ).getType( ).name( ) );
                         responseList.add( response );
                     }
                 }
@@ -409,7 +459,7 @@ public class HttpAccessTransport implements IHttpTransportProvider
                 {
                     // If it is an error responseList, we need to convert it to the desired responseList class
                     final T response = responseClass.newInstance( );
-                    response.setStatus( er.getStatus( ) );
+                    response.setStatus( er.getStatus( ).getType( ).name( ) );
                     responseList.add( response );
                 }
             }
