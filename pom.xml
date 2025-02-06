@@ -3,7 +3,7 @@
     <parent>
         <artifactId>lutece-global-pom</artifactId>
         <groupId>fr.paris.lutece.tools</groupId>
-        <version>6.1.0</version>
+        <version>7.0.0</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -90,9 +90,9 @@
 
         
     <scm>
-        <connection>scm:git:https://github.com/lutece-secteur-public/gru-library-identitystore.git</connection>
-        <developerConnection>scm:git:https://github.com/lutece-secteur-public/gru-library-identitystore.git</developerConnection>
-        <url>https://github.com/lutece-secteur-public/gru-library-identitystore.git</url>
+        <connection>scm:git:https://github.com/lutece-secteur-public/gru-library-account-management.git</connection>
+        <developerConnection>scm:git:https://github.com/lutece-secteur-public/gru-library-account-management.git</developerConnection>
+        <url>https://github.com/lutece-secteur-public/gru-library-account-management.git</url>
         <tag>HEAD</tag>
     </scm>
 
